@@ -1,0 +1,2 @@
+class UndefinedTableError(Exception):
+    pass
