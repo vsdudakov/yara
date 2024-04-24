@@ -8,6 +8,7 @@ class YaraApp:
     api_router: YaraApiRouter | None = None
     middlewares: list[tuple[type[YaraMiddleware], dict[str, tp.Any]]] | None = None
     commands: tp.Any | None = None
+    settings: list[tuple[str, str, bool, tp.Any]] | None = None
 
     root_app: tp.Any
 

@@ -1,5 +1,4 @@
 import logging
-import typing as tp
 
 from aiohttp import ClientConnectorError
 from miniopy_async import Minio, deleteobjects
@@ -14,30 +13,12 @@ class MinioStorageBackend(StorageBackend):
     settings: YaraSettings
 
     client: Minio | None
-    minio_url: str
-    minio_access_key: str
-    minio_secret_key: str
-
-    def __init__(
-        self,
-        settings: YaraSettings,
-    ) -> None:
-        super().__init__(settings)
-        for setting, field, required in (
-            ("YARA_STORAGE_MINIO_URL", "minio_url", True),
-            ("YARA_STORAGE_MINIO_ACCESS_KEY", "minio_access_key", True),
-            ("YARA_STORAGE_MINIO_SECRET_KEY", "minio_secret_key", True),
-        ):
-            value: tp.Any | None = getattr(settings, setting, None)
-            if value is None and required:
-                raise ValueError(f"Provide {setting} settings")
-            setattr(self, field, value)
 
     async def up(self) -> None:
         self.client = Minio(
-            self.minio_url,
-            access_key=self.minio_access_key,
-            secret_key=self.minio_secret_key,
+            self.settings.YARA_STORAGE_MINIO_URL,
+            access_key=self.settings.YARA_STORAGE_MINIO_ACCESS_KEY,
+            secret_key=self.settings.YARA_STORAGE_MINIO_SECRET_KEY,
             secure=False,
         )
 

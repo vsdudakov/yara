@@ -34,16 +34,7 @@ class ORMBackend:
         settings: YaraSettings,
     ) -> None:
         self.settings = settings
-        for setting, field, required in (
-            ("YARA_ORM_DSN", "dsn", True),
-            ("YARA_ORM_MIGRATIONS_TABLE", "migrations_table", False),
-        ):
-            value: tp.Any | None = getattr(settings, setting, None)
-            if value is None and required:
-                raise ValueError(f"Provide {setting} settings")
-            setattr(self, field, value)
-
-        self.migrations_table = self.migrations_table or "yara__orm__migrations"
+        self.migrations_table = self.settings.YARA_ORM_MIGRATIONS_TABLE
         self.migrations = []
         for app_path in settings.get_apps_paths():
             self.migrations.append(f"{app_path}.migrations")

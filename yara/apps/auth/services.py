@@ -1,5 +1,4 @@
 import logging
-import typing as tp
 import uuid
 
 from yara.adapters.oauth.adapter import OAuth2Adapter
@@ -36,14 +35,6 @@ logger = logging.getLogger(__name__)
 
 
 class AuthService(YaraService):
-    secret_key: str
-    access_token_expired_at: int
-    refresh_token_expired_at: int
-    magic_link_verification_token_exp_at: int
-    sign_up_invitation_token_exp_at: int
-    sign_up_verification_token_exp_at: int
-    reset_password_verification_token_exp_at: int
-
     user_orm_adapter: ORMAdapter[User]
     group_orm_adapter: ORMAdapter[Group]
 
@@ -52,25 +43,20 @@ class AuthService(YaraService):
         self.user_orm_adapter: ORMAdapter[User] = self.root_app.get_adapter(ORMAdapter)
         self.group_orm_adapter: ORMAdapter[Group] = self.root_app.get_adapter(ORMAdapter)
         self.oauth2_adapter: OAuth2Adapter = self.root_app.get_adapter(OAuth2Adapter)
-        for setting, field, required in (
-            ("YARA_AUTH_SECRET_KEY", "secret_key", True),
-            ("YARA_AUTH_EXP_ACCESS_TOKEN", "access_token_expired_at", True),
-            ("YARA_AUTH_EXP_REFRESH_TOKEN", "refresh_token_expired_at", True),
-            ("YARA_AUTH_EXP_MAGIC_VERIFICATION_TOKEN", "magic_link_verification_token_exp_at", True),
-            ("YARA_AUTH_EXP_SIGNUP_INVITATION_TOKEN", "sign_up_invitation_token_exp_at", True),
-            ("YARA_AUTH_EXP_SIGNUP_VERIFICATION_TOKEN", "sign_up_verification_token_exp_at", True),
-            ("YARA_AUTH_EXP_RESET_PASSWORD_VERIFICATION_TOKEN", "reset_password_verification_token_exp_at", True),
-        ):
-            value: tp.Any | None = getattr(root_app.settings, setting, None)
-            if not value and required:
-                raise ValueError(f"Provide {setting} settings")
-            setattr(self, field, value)
 
     def generate_tokens(self, authenticated_user_id: uuid.UUID) -> SignInResponse:
         salt = generate_random_string()
         payload = {"id": str(authenticated_user_id), "salt": salt}
-        access_token = encode_jwt_token(payload, self.access_token_expired_at, self.secret_key)
-        refresh_token = encode_jwt_token(payload, self.refresh_token_expired_at, self.secret_key)
+        access_token = encode_jwt_token(
+            payload,
+            self.root_app.settings.YARA_AUTH_EXP_ACCESS_TOKEN,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
+        )
+        refresh_token = encode_jwt_token(
+            payload,
+            self.root_app.settings.YARA_AUTH_EXP_REFRESH_TOKEN,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
+        )
         return SignInResponse(access_token=access_token, refresh_token=refresh_token)
 
     def get_invitation_token(self, inviter_user_id: uuid.UUID, group_id: uuid.UUID) -> str | None:
@@ -81,8 +67,8 @@ class AuthService(YaraService):
                 "tags": ["sign-up-invitation"],
                 "salt": generate_random_string(),
             },
-            self.sign_up_invitation_token_exp_at,
-            self.secret_key,
+            self.root_app.settings.YARA_AUTH_EXP_SIGNUP_INVITATION_TOKEN,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
         )
 
     async def sign_in(self, payload: SignInPayload) -> SignInResponse:
@@ -117,8 +103,8 @@ class AuthService(YaraService):
                 "tags": ["magic-link"],
                 "salt": generate_random_string(),
             },
-            self.magic_link_verification_token_exp_at,
-            self.secret_key,
+            self.root_app.settings.YARA_AUTH_EXP_MAGIC_VERIFICATION_TOKEN,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
         )
 
         task_send_email.delay(
@@ -133,7 +119,7 @@ class AuthService(YaraService):
     async def sign_in_magic_link_complete(self, payload: SignInMagicLinkCompletePayload) -> SignInResponse:
         jwt_payload = decode_jwt_token(
             payload.magic_link_verification_token,
-            self.secret_key,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
         )
         if not jwt_payload or "magic-link" not in jwt_payload.get("tags", []):
             raise ValueError({"token": "Invalid magic link token"})
@@ -199,7 +185,7 @@ class AuthService(YaraService):
         if payload.invitation_token:
             jwt_payload = decode_jwt_token(
                 payload.invitation_token,
-                self.secret_key,
+                self.root_app.settings.YARA_AUTH_SECRET_KEY,
             )
             if not jwt_payload or "sign-up-invitation" not in jwt_payload.get("tags", []):
                 raise ValueError({"token": "Invalid invitation token"})
@@ -224,8 +210,8 @@ class AuthService(YaraService):
                 "tags": ["sign-up-verification"],
                 "salt": generate_random_string(),
             },
-            self.sign_up_verification_token_exp_at,
-            self.secret_key,
+            self.root_app.settings.YARA_AUTH_EXP_SIGNUP_VERIFICATION_TOKEN,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
         )
 
         task_send_email.delay(
@@ -240,7 +226,7 @@ class AuthService(YaraService):
     async def sign_up_complete(self, payload: SignUpCompletePayload) -> SignInResponse:
         jwt_payload = decode_jwt_token(
             payload.sign_up_verification_token,
-            self.secret_key,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
         )
         if not jwt_payload or "sign-up-verification" not in jwt_payload.get("tags", []):
             raise ValueError({"token": "Invalid sign up verification token"})
@@ -270,8 +256,8 @@ class AuthService(YaraService):
                 "tags": ["reset-password"],
                 "salt": generate_random_string(),
             },
-            self.reset_password_verification_token_exp_at,
-            self.secret_key,
+            self.root_app.settings.YARA_AUTH_EXP_RESET_PASSWORD_VERIFICATION_TOKEN,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
         )
 
         task_send_email.delay(
@@ -289,7 +275,7 @@ class AuthService(YaraService):
     ) -> SignInResponse:
         jwt_payload = decode_jwt_token(
             payload.reset_password_verification_token,
-            self.secret_key,
+            self.root_app.settings.YARA_AUTH_SECRET_KEY,
         )
         if not jwt_payload or "reset-password" not in jwt_payload.get("tags", []):
             raise ValueError({"token": "Invalid reset password token"})

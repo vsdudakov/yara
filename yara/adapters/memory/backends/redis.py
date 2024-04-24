@@ -17,9 +17,9 @@ class RedisMemoryBackend(MemoryBackend):
 
     async def up(self) -> None:
         pool = redis.BlockingConnectionPool.from_url(
-            self.dsn,
-            max_connections=self.max_connections,
-            timeout=self.timeout,
+            self.settings.YARA_MEMORY_DSN,
+            max_connections=self.settings.YARA_MEMORY_MAX_CONNECTIONS,
+            timeout=self.settings.YARA_MEMORY_TIMEOUT,
         )
         self.client = redis.Redis.from_pool(pool)
 

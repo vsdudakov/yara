@@ -1,7 +1,6 @@
 import base64
 import json
 import logging
-import typing as tp
 
 import aiohttp
 from oauthlib.oauth2 import WebApplicationClient
@@ -13,8 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class GoogleOAuth2Backend(OAuth2Backend):
-    client_id: str
-    client_secret: str
     client: WebApplicationClient
 
     def __init__(
@@ -22,16 +19,7 @@ class GoogleOAuth2Backend(OAuth2Backend):
         settings: YaraSettings,
     ) -> None:
         super().__init__(settings)
-        for setting, field, required in (
-            ("YARA_OAUTH2_GOOGLE_CLIENT_ID", "client_id", True),
-            ("YARA_OAUTH2_GOOGLE_CLIENT_SECRET", "client_secret", True),
-        ):
-            value: tp.Any | None = getattr(settings, setting, None)
-            if value is None and required:
-                raise ValueError(f"Provide {setting} settings")
-            setattr(self, field, value)
-
-        self.client = WebApplicationClient(self.client_id)
+        self.client = WebApplicationClient(settings.YARA_OAUTH2_GOOGLE_CLIENT_ID)
 
     async def get_authorization_url(
         self,
@@ -65,7 +53,10 @@ class GoogleOAuth2Backend(OAuth2Backend):
                 token_url,
                 headers=headers,
                 data=body,
-                auth=aiohttp.BasicAuth(self.client_id, self.client_secret),
+                auth=aiohttp.BasicAuth(
+                    self.settings.YARA_OAUTH2_GOOGLE_CLIENT_ID,
+                    self.settings.YARA_OAUTH2_GOOGLE_CLIENT_SECRET,
+                ),
             ) as token_response,
         ):
             token_data = await token_response.json()

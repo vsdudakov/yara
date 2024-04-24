@@ -50,7 +50,9 @@ class ORMPostgresBackend(ORMBackend):
     connection_pool: asyncpg.Pool | None = None
 
     async def up(self) -> None:
-        self.connection_pool: asyncpg.Pool = await asyncpg.create_pool(dsn=self.dsn)
+        self.connection_pool: asyncpg.Pool = await asyncpg.create_pool(
+            dsn=self.settings.YARA_ORM_DSN,
+        )
 
     async def healthcheck(self) -> bool:
         assert self.connection_pool is not None

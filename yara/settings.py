@@ -42,11 +42,13 @@ class YaraSettings(BaseSettings):
     # Orm
     YARA_ORM_BACKEND: str = "yara.adapters.orm.backends.postgres.ORMPostgresBackend"
     YARA_ORM_DSN: str
+    YARA_ORM_MIGRATIONS_TABLE: str = "yara__orm__migrations"
 
     # Memory
     YARA_MEMORY_BACKEND: str = "yara.adapters.memory.backends.redis.RedisMemoryBackend"
     YARA_MEMORY_DSN: str
     YARA_MEMORY_MAX_CONNECTIONS: int = 100
+    YARA_MEMORY_TIMEOUT: int | None = None
 
     # Storage
     YARA_STORAGE_BACKEND: str = "yara.adapters.storage.backends.minio.MinioStorageBackend"
@@ -63,6 +65,7 @@ class YaraSettings(BaseSettings):
     YARA_EMAIL_SMTP_USERNAME: str
     YARA_EMAIL_SMTP_PASSWORD: str
     YARA_EMAIL_SMTP_USE_TLS: bool = True
+    YARA_EMAIL_SMTP_TIMEOUT: int | None = None
 
     # Auth
     YARA_AUTH_SECRET_KEY: str
@@ -72,3 +75,7 @@ class YaraSettings(BaseSettings):
     YARA_AUTH_EXP_SIGNUP_INVITATION_TOKEN: int = 60 * 60 * 24
     YARA_AUTH_EXP_SIGNUP_VERIFICATION_TOKEN: int = 60 * 60 * 24
     YARA_AUTH_EXP_RESET_PASSWORD_VERIFICATION_TOKEN: int = 60 * 60 * 24
+
+    # OAuth2
+    YARA_OAUTH2_GOOGLE_CLIENT_ID: str = ""
+    YARA_OAUTH2_GOOGLE_CLIENT_SECRET: str = ""

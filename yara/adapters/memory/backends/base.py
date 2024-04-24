@@ -7,24 +7,11 @@ from yara.settings import YaraSettings
 class MemoryBackend:
     settings: YaraSettings
 
-    dsn: str
-    max_connections: int
-    timeout: int | None
-
     def __init__(
         self,
         settings: YaraSettings,
     ) -> None:
         self.settings = settings
-        for setting, field, required in (
-            ("YARA_MEMORY_DSN", "dsn", True),
-            ("YARA_MEMORY_MAX_CONNECTIONS", "max_connections", True),
-            ("YARA_MEMORY_TIMEOUT", "timeout", False),
-        ):
-            value: tp.Any | None = getattr(settings, setting, None)
-            if value is None and required:
-                raise ValueError(f"Provide {setting} settings")
-            setattr(self, field, value)
 
     @abc.abstractmethod
     async def up(self) -> None:
