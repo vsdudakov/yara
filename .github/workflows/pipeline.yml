@@ -40,10 +40,6 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'poetry'
-      - name: Set SSH Agent
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: bash .github/set_ssh_agent.sh
       - name: Install Dependencies
         run: make install
       - name: Linters
