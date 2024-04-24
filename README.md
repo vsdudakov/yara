@@ -1,1 +1,3 @@
 # Yara
+
+A web framework that combines the asynchronous capabilities of FastAPI with the structured design of Django, offering a robust solution for building high-performance web applications. This framework is designed to leverage FastAPI's async features for efficient handling of concurrent requests, while incorporating Django's well-organized architectural patterns, enhancing the development process with a familiar and scalable structure. Ideal for developers seeking to create scalable, maintainable web services with the speed benefits of asynchronous programming.
