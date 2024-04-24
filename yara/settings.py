@@ -23,8 +23,10 @@ class YaraSettings(BaseSettings):
     ]
     YARA_APPS: list[str] = [
         "yara.apps.orm.app.ORMApp",
+        "yara.apps.security.app.SecurityApp",
         "yara.apps.featureflags.app.FeatureFlagApp",
         "yara.apps.auth.app.AuthApp",
+
     ]
 
     def get_apps_paths(self) -> Generator[str, None, None]:
@@ -82,3 +84,26 @@ class YaraSettings(BaseSettings):
 
     # Websockets
     YARA_WEBSOCKETS_HANDLER_TASK: str | None = None
+
+    # SECURITY
+    CORS_ORIGINS: list[str] = ["*"]
+
+    SEC_HSTS_MAX_AGE: int = 31536000
+    SEC_XSS_PROTECTION: str = "1; mode=block"
+    SEC_XCONTENT_TYPE: str = "nosniff"
+    SEC_CACHE_CONTROL_S_MAXAGE: int = 0
+
+    SEC_XDNS_PREFETCH_CONTROL: str = "off"
+    SEC_XDNS_PREFETCH_CONTROL_POLICIES: list[str] = ["off"]
+
+    SEC_XPERMITTED_CDP: str = "none"
+    SEC_XPERMITTED_CDP_POLICIES: list[str] = ["none"]
+
+    SEC_CROSS_ORIGIN_OPENER: str = "same-origin"
+    SEC_CROSS_ORIGIN_OPENER_POLICIES: list[str] = ["same-origin"]
+
+    SEC_CROSS_ORIGIN_RESOURCE: str = "same-origin"
+    SEC_CROSS_ORIGIN_RESOURCE_POLICIES: list[str] = ["same-origin"]
+
+    SEC_EXPECTCT_MAX_AGE: int = 0
+    SEC_EXPECTCT_POLICIES: list[str] = ["enforce"]

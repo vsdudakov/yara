@@ -31,6 +31,8 @@ python-dotenv = "^1.0.1"
 oauthlib = "^3.2.2"
 bcrypt = "^4.1.2"
 orjson = "^3.10.1"
+starlette-context = "^0.3.6"
+secure = "^0.3.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.6"

@@ -37,7 +37,12 @@ class ORMBackend:
         self.migrations_table = self.settings.YARA_ORM_MIGRATIONS_TABLE
         self.migrations = []
         for app_path in settings.get_apps_paths():
-            self.migrations.append(f"{app_path}.migrations")
+            migrations_path = f"{app_path}.migrations"
+            try:
+                importlib.import_module(migrations_path)
+                self.migrations.append(migrations_path)
+            except ImportError:
+                continue
 
     @abc.abstractmethod
     async def up(self) -> None:

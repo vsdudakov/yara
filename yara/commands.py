@@ -12,9 +12,10 @@ root_app = YaraRootApp()
 
 
 for app in root_app.apps.values():
-    if not app.commands:
+    commands = app.get_commands()
+    if not commands:
         continue
-    for command in app.commands:
+    for command in commands:
         typer_app.command()(command)
 
 

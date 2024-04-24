@@ -5,12 +5,16 @@ from yara.core.middlewares import YaraMiddleware
 
 
 class YaraApp:
-    api_router: YaraApiRouter | None = None
-    middlewares: list[tuple[type[YaraMiddleware], dict[str, tp.Any]]] | None = None
-    commands: tp.Any | None = None
-    settings: list[tuple[str, str, bool, tp.Any]] | None = None
-
     root_app: tp.Any
 
     def __init__(self, root_app: tp.Any) -> None:
         self.root_app = root_app
+
+    def get_middlewares(self) -> list[tuple[type[YaraMiddleware], dict[str, tp.Any]]]:
+        return []
+
+    def get_commands(self) -> list[tp.Any]:
+        return []
+
+    def get_api_router(self) -> YaraApiRouter | None:
+        return None

@@ -1824,6 +1824,17 @@ files = [
 ]
 
 [[package]]
+name = "secure"
+version = "0.3.0"
+description = "A lightweight package that adds security headers for Python web frameworks."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "secure-0.3.0-py3-none-any.whl", hash = "sha256:a93b720c7614809c131ca80e477263140107c6c212829d0a6e1f7bc8d859c608"},
+    {file = "secure-0.3.0.tar.gz", hash = "sha256:6e30939d8f95bf3b8effb8a36ebb5ed57f265daeeae905e3aa9677ea538ab64e"},
+]
+
+[[package]]
 name = "sentry-sdk"
 version = "1.45.0"
 description = "Python client for Sentry (https://sentry.io)"
@@ -1919,6 +1930,20 @@ anyio = ">=3.4.0,<5"
 
 [package.extras]
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
+
+[[package]]
+name = "starlette-context"
+version = "0.3.6"
+description = "Middleware for Starlette that allows you to store and access the context data of a request. Can be used with logging so logs automatically use request headers such as x-request-id or x-correlation-id."
+optional = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "starlette_context-0.3.6-py3-none-any.whl", hash = "sha256:b14ce373fbb6895a2182a7104b9f63ba20c8db83444005fb9a844dd77ad9895c"},
+    {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
+]
+
+[package.dependencies]
+starlette = "*"
 
 [[package]]
 name = "typer"
@@ -2242,4 +2267,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "6554be8010fa581e370fd66ebea498d121e92daf78d2baadb26b192a8c9e147a"
+content-hash = "2e5daa65bf200db3aa9d70f599f7485195ae685415835f973e979839eab43afe"
