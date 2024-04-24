@@ -26,7 +26,6 @@ class YaraSettings(BaseSettings):
         "yara.apps.secure.app.SecureApp",
         "yara.apps.featureflags.app.FeatureFlagApp",
         "yara.apps.auth.app.AuthApp",
-
     ]
 
     def get_apps_paths(self) -> Generator[str, None, None]:
