@@ -1,4 +1,6 @@
 import enum
+from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -107,3 +109,21 @@ class ResetPasswordCompletePayload(BaseModel):
         if pw1 is not None and pw2 is not None and pw1 != pw2:
             raise ValueError("Passwords do not match")
         return self
+
+
+class UserMetaData(BaseModel):
+    pass
+
+
+class UserWithMetaData(BaseModel):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    group_id: UUID | None = None
+    email: str
+    phone: str | None
+    full_name: str | None
+    is_active: bool = False
+    is_superuser: bool = False
+    is_group_moderator: bool = False
+    metadata: UserMetaData

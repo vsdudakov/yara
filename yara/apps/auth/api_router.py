@@ -1,9 +1,12 @@
+import typing as tp
 from uuid import UUID
 
+from yara.adapters.orm.adapter import where_clause
 from yara.apps.auth import schemas
 from yara.apps.auth.helpers import get_authenticated_user_id, get_authenticated_user_id_from_refresh
+from yara.apps.auth.models import User
 from yara.apps.auth.services import AuthService
-from yara.core.api_router import Depends, Response, YaraApiRouter, get_service
+from yara.core.api_router import Depends, HTTPException, Response, YaraApiRouter, get_service, status
 
 api_router = YaraApiRouter(
     prefix="/auth",
@@ -292,3 +295,39 @@ async def sign_out(
     response.delete_cookie("RefreshToken")
     # for mobile nothing to do
     return
+
+
+@api_router.patch("/me")
+async def update_me(
+    payload: dict[str, tp.Any],
+    auth_service: AuthService = Depends(get_service(AuthService)),
+    authenticated_user_id: UUID = Depends(get_authenticated_user_id),
+) -> User:
+    user = await auth_service.user_orm_adapter.update_and_read(
+        User,
+        payload,
+        where_clause(id=str(authenticated_user_id)),
+    )
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User Not Found")
+    return user
+
+
+@api_router.get("/me")
+async def get_me(
+    auth_service: AuthService = Depends(get_service(AuthService)),
+    authenticated_user_id: UUID = Depends(get_authenticated_user_id),
+) -> schemas.UserWithMetaData:
+    user = await auth_service.user_orm_adapter.read(
+        User,
+        where_clause(id=str(authenticated_user_id)),
+    )
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User Not Found")
+
+    return schemas.UserWithMetaData.model_validate(
+        {
+            **user.model_dump(),
+            "metadata": {},
+        }
+    )
