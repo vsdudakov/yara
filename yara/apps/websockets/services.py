@@ -7,6 +7,7 @@ from uuid import UUID
 import orjson
 
 from yara.adapters.memory.adapter import MemoryAdapter
+from yara.core.helpers import import_obj
 from yara.core.services import YaraService
 from yara.main import YaraRootApp
 
@@ -30,18 +31,15 @@ class WebSocket(tp.Protocol):
 class WebsocketService(YaraService):
     memory_set_subscribers_key: str = "ws_subscribers"
     memory_queue_messages_key: str = "ws_messages_for_{user_id}"
-    task_handle_ws_message: tp.Any
 
     memory_adapter: MemoryAdapter
 
     def __init__(
         self,
         root_app: YaraRootApp,
-        task_handle_ws_message: tp.Any,
     ) -> None:
         super().__init__(root_app)
         self.memory_adapter: MemoryAdapter = self.root_app.get_adapter(MemoryAdapter)
-        self.task_handle_ws_message = task_handle_ws_message
 
     async def accept(
         self,
@@ -112,8 +110,17 @@ class WebsocketService(YaraService):
         )
 
     async def _ws_receiver(self, user_id: UUID, websocket: WebSocket) -> None:
+        if not self.root_app.settings.YARA_WEBSOCKETS_HANDLER_TASK:
+            logger.error("YARA_WEBSOCKETS_HANDLER_TASK not configured")
+            return
+        task_handle_ws_message = import_obj(self.root_app.settings.YARA_WEBSOCKETS_HANDLER_TASK)
+        if not task_handle_ws_message:
+            logger.error(
+                "YARA_WEBSOCKETS_HANDLER_TASK %s not found", self.root_app.settings.YARA_WEBSOCKETS_HANDLER_TASK
+            )
+            return
         async for message_json in websocket.iter_text():
-            self.task_handle_ws_message.delay(str(user_id), message_json)
+            task_handle_ws_message.delay(str(user_id), message_json)
 
     async def _ws_sender(self, user_id: UUID, websocket: WebSocket) -> None:
         while True:
@@ -144,5 +151,4 @@ class WebsocketService(YaraService):
             self.memory_set_subscribers_key,
             str(user_id),
         )
-        await self.memory_adapter.delete(self.memory_queue_messages_key.format(user_id=user_id))
         await websocket.close()

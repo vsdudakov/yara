@@ -19,7 +19,7 @@ from sentry_sdk.integrations.starlette import StarletteIntegration
 
 from yara.core.adapters import YaraAdapter
 from yara.core.apps import YaraApp
-from yara.core.helpers import import_class
+from yara.core.helpers import import_obj
 from yara.core.tasks import AsyncCeleryTask
 from yara.settings import YaraSettings
 
@@ -70,14 +70,14 @@ class YaraBaseRootApp:
         settings_path = os.getenv("YARA_SETTINGS")
         if not settings_path:
             raise ValueError("YARA_SETTINGS environment variable is not set")
-        settings_cls: type[YaraSettings] | None = import_class(settings_path)
+        settings_cls: type[YaraSettings] | None = import_obj(settings_path)
         if not settings_cls:
             raise ValueError(f"Settings {settings_path} not found")
         self.settings = settings_cls()  # type: ignore [call-arg]
 
         self.adapters = {}
         for adapter_cls_path in self.settings.YARA_ADAPTERS:
-            adapter_cls: type[YaraAdapter] | None = import_class(adapter_cls_path)
+            adapter_cls: type[YaraAdapter] | None = import_obj(adapter_cls_path)
             if not adapter_cls:
                 logger.error("Adapter %s not found", adapter_cls_path)
                 continue
@@ -169,7 +169,7 @@ class YaraRootApp(YaraBaseRootApp):
 
         self.apps = {}
         for app_cls_path in self.settings.YARA_APPS:
-            app_cls: type[YaraApp] | None = import_class(app_cls_path)
+            app_cls: type[YaraApp] | None = import_obj(app_cls_path)
             if not app_cls:
                 logger.error("App %s not found", app_cls_path)
                 continue

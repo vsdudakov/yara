@@ -5,7 +5,7 @@ from importlib import import_module
 logger = logging.getLogger(__name__)
 
 
-def import_class(path: str) -> tp.Any | None:
+def import_obj(path: str) -> tp.Any | None:
     module, cls = path.rsplit(".", 1)
     try:
         command_module = import_module(module)

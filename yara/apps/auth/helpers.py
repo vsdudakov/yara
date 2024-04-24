@@ -5,12 +5,12 @@ import typing as tp
 from uuid import UUID
 
 import jwt
-from fastapi import Cookie, Depends, Header, HTTPException, WebSocket, status
 from passlib.context import CryptContext
 
 from yara.adapters.orm.adapter import ORMAdapter, where_clause
 from yara.apps.auth.models import User
-from yara.core.api_router import get_root_app
+from yara.core.api_router import Depends, HTTPException, Request, WebSocket, get_root_app, status
+from yara.settings import YaraSettings
 
 logger = logging.getLogger(__name__)
 
@@ -57,37 +57,29 @@ def hash_password(
     return CryptContext(schemes=crypt_context_scheme, deprecated="auto").hash(password)
 
 
-async def get_authenticated_user_id(
-    authorization: str
-    | None = Header(
-        default=None,
-        alias="Authorization",
-        title="Access Token",
-        example="Bearer <access_token>",
-    ),
-    access_token_cookie: str
-    | None = Cookie(
-        default=None,
-        title="Access Token",
-        example="<access_token>",
-    ),
-    root_app: tp.Any = Depends(get_root_app),
+def _get_authenticated_user_id(
+    settings: YaraSettings,
+    token: str | None,
 ) -> UUID:
-    access_token = None
-    if access_token_cookie:
-        access_token = access_token_cookie
-    elif authorization:
-        access_token = authorization.replace("Bearer ", "")
     try:
-        if not access_token:
-            raise ValueError("Invalid Access Token")
-        secret_key = root_app.settings.YARA_AUTH_SECRET_KEY
-        payload = decode_jwt_token(access_token, secret_key)
+        if not token:
+            raise ValueError("Invalid Token")
+        secret_key = settings.YARA_AUTH_SECRET_KEY
+        payload = decode_jwt_token(token, secret_key)
         if not payload:
-            raise ValueError("Invalid Access Token")
+            raise ValueError("Invalid Token")
         return UUID(payload["id"])
     except (ValueError, TypeError):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Access Token") from None
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token") from None
+
+
+async def get_authenticated_user_id(
+    request: Request,
+    root_app: tp.Any = Depends(get_root_app),
+) -> UUID:
+    settings: YaraSettings = root_app.settings
+    access_token = request.cookies.get("AccessToken")
+    return _get_authenticated_user_id(settings, access_token)
 
 
 async def get_authenticated_superuser_id(
@@ -113,60 +105,17 @@ async def get_authenticated_group_id(
 
 async def get_ws_authenticated_user_id(
     websocket: WebSocket,
-    authorization: str
-    | None = Header(
-        default=None,
-        alias="Authorization",
-        title="Access Token",
-        examples=["Bearer <access_token>"],
-    ),
-    access_token_cookie: str
-    | None = Cookie(
-        default=None,
-        title="Access Token",
-        examples=["<access_token>"],
-    ),
     root_app: tp.Any = Depends(get_root_app),
 ) -> UUID:
-    try:
-        return await get_authenticated_user_id(
-            authorization=authorization,
-            access_token_cookie=access_token_cookie,
-            root_app=root_app,
-        )
-    except HTTPException as exc:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid Access Token")
-        raise exc
+    settings: YaraSettings = root_app.settings
+    access_token = websocket.cookies.get("AccessToken")
+    return _get_authenticated_user_id(settings, access_token)
 
 
 async def get_authenticated_user_id_from_refresh(
-    authorization: str
-    | None = Header(
-        default=None,
-        alias="Authorization",
-        title="Refresh Token",
-        examples=["Bearer <refresh_token>"],
-    ),
-    refresh_token_cookie: str
-    | None = Cookie(
-        default=None,
-        title="Refresh Token",
-        examples=["<refresh_token>"],
-    ),
+    request: Request,
     root_app: tp.Any = Depends(get_root_app),
 ) -> UUID:
-    refresh_token = None
-    if refresh_token_cookie:
-        refresh_token = refresh_token_cookie
-    elif authorization:
-        refresh_token = authorization.replace("Bearer ", "")
-    try:
-        if not refresh_token:
-            raise ValueError("Invalid Access Token")
-        secret_key = root_app.settings.YARA_JWT_SECRET_KEY
-        payload = decode_jwt_token(refresh_token, secret_key)
-        if not payload:
-            raise ValueError("Invalid Refresh Token")
-        return UUID(payload["id"])
-    except (ValueError, TypeError):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Refresh Token") from None
+    settings: YaraSettings = root_app.settings
+    refresh_token = request.cookies.get("RefreshToken")
+    return _get_authenticated_user_id(settings, refresh_token)

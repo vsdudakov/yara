@@ -5,13 +5,13 @@ from yara.apps.auth.helpers import get_authenticated_user_id, get_authenticated_
 from yara.apps.auth.services import AuthService
 from yara.core.api_router import Depends, Response, YaraApiRouter, get_service
 
-auth_router = YaraApiRouter(
+api_router = YaraApiRouter(
     prefix="/auth",
     tags=["auth"],
 )
 
 
-@auth_router.post("/sign-in")
+@api_router.post("/sign-in")
 async def sign_in(
     payload: schemas.SignInPayload,
     response: Response,
@@ -28,13 +28,23 @@ async def sign_in(
 
     tokens = await auth_service.sign_in(payload)
     # for web
-    response.set_cookie("access_token_cookie", value=tokens.access_token, httponly=True)
-    response.set_cookie("refresh_token_cookie", value=tokens.refresh_token, httponly=True)
+    response.set_cookie(
+        "AccessToken",
+        value=tokens.access_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
+    response.set_cookie(
+        "RefreshToken",
+        value=tokens.refresh_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
     # for mobile
     return tokens
 
 
-@auth_router.post("/sign-in/magic-link")
+@api_router.post("/sign-in/magic-link")
 async def sign_in_magic_link(
     payload: schemas.SignInMagicLinkPayload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -54,7 +64,7 @@ async def sign_in_magic_link(
     return await auth_service.sign_in_magic_link(payload)
 
 
-@auth_router.post("/sign-in/magic-link/complete")
+@api_router.post("/sign-in/magic-link/complete")
 async def sign_in_magic_link_complete(
     payload: schemas.SignInMagicLinkCompletePayload,
     response: Response,
@@ -62,13 +72,23 @@ async def sign_in_magic_link_complete(
 ) -> schemas.SignInResponse:
     tokens = await auth_service.sign_in_magic_link_complete(payload)
     # for web
-    response.set_cookie("access_token_cookie", value=tokens.access_token, httponly=True)
-    response.set_cookie("refresh_token_cookie", value=tokens.refresh_token, httponly=True)
+    response.set_cookie(
+        "AccessToken",
+        value=tokens.access_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
+    response.set_cookie(
+        "RefreshToken",
+        value=tokens.refresh_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
     # for mobile
     return tokens
 
 
-@auth_router.post("/sign-in/oauth2")
+@api_router.post("/sign-in/oauth2")
 async def sign_in_oauth2(
     payload: schemas.SignInOAuth2Payload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -97,7 +117,7 @@ async def sign_in_oauth2(
     return await auth_service.sign_in_oauth2(payload)
 
 
-@auth_router.post("/sign-in/oauth2/callback")
+@api_router.post("/sign-in/oauth2/callback")
 async def sign_in_oauth2_callback(
     payload: schemas.SignInOAuth2CallbackPayload,
     response: Response,
@@ -105,13 +125,23 @@ async def sign_in_oauth2_callback(
 ) -> schemas.SignInResponse:
     tokens = await auth_service.sign_in_oauth2_callback(payload)
     # for web
-    response.set_cookie("access_token_cookie", value=tokens.access_token, httponly=True)
-    response.set_cookie("refresh_token_cookie", value=tokens.refresh_token, httponly=True)
+    response.set_cookie(
+        "AccessToken",
+        value=tokens.access_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
+    response.set_cookie(
+        "RefreshToken",
+        value=tokens.refresh_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
     # for mobile
     return tokens
 
 
-@auth_router.post("/refresh-tokens")
+@api_router.post("/refresh-tokens")
 async def refresh_tokens(
     response: Response,
     authenticated_user_id: UUID = Depends(get_authenticated_user_id_from_refresh),
@@ -126,13 +156,23 @@ async def refresh_tokens(
 
     tokens = auth_service.generate_tokens(authenticated_user_id)
     # for web
-    response.set_cookie("access_token_cookie", value=tokens.access_token, httponly=True)
-    response.set_cookie("refresh_token_cookie", value=tokens.refresh_token, httponly=True)
+    response.set_cookie(
+        "AccessToken",
+        value=tokens.access_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
+    response.set_cookie(
+        "RefreshToken",
+        value=tokens.refresh_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
     # for mobile
     return tokens
 
 
-@auth_router.get("/sign-up-invitation")
+@api_router.get("/sign-up-invitation")
 async def sign_up_invitation(
     auth_service: AuthService = Depends(get_service(AuthService)),
     authenticated_user_id: UUID = Depends(get_authenticated_user_id),
@@ -150,7 +190,7 @@ async def sign_up_invitation(
     return await auth_service.sign_up_invitation(authenticated_user_id)
 
 
-@auth_router.post("/sign-up")
+@api_router.post("/sign-up")
 async def sign_up(
     payload: schemas.SignUpPayload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -171,7 +211,7 @@ async def sign_up(
     return await auth_service.sign_up(payload)
 
 
-@auth_router.post("/sign-up/complete")
+@api_router.post("/sign-up/complete")
 async def sign_up_complete(
     response: Response,
     payload: schemas.SignUpCompletePayload,
@@ -179,13 +219,23 @@ async def sign_up_complete(
 ) -> schemas.SignInResponse:
     tokens = await auth_service.sign_up_complete(payload)
     # for web
-    response.set_cookie("access_token_cookie", value=tokens.access_token, httponly=True)
-    response.set_cookie("refresh_token_cookie", value=tokens.refresh_token, httponly=True)
+    response.set_cookie(
+        "AccessToken",
+        value=tokens.access_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
+    response.set_cookie(
+        "RefreshToken",
+        value=tokens.refresh_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
     # for mobile
     return tokens
 
 
-@auth_router.post("/reset-password")
+@api_router.post("/reset-password")
 async def reset_password(
     payload: schemas.ResetPasswordPayload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -206,7 +256,7 @@ async def reset_password(
     return await auth_service.reset_password(payload)
 
 
-@auth_router.post("/reset-password/complete")
+@api_router.post("/reset-password/complete")
 async def reset_password_complete(
     response: Response,
     payload: schemas.ResetPasswordCompletePayload,
@@ -214,13 +264,23 @@ async def reset_password_complete(
 ) -> schemas.SignInResponse:
     tokens = await auth_service.reset_password_complete(payload)
     # for web
-    response.set_cookie("access_token_cookie", value=tokens.access_token, httponly=True)
-    response.set_cookie("refresh_token_cookie", value=tokens.refresh_token, httponly=True)
+    response.set_cookie(
+        "AccessToken",
+        value=tokens.access_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
+    response.set_cookie(
+        "RefreshToken",
+        value=tokens.refresh_token,
+        httponly=True,
+        secure=auth_service.root_app.settings.YARA_ENV != "local",
+    )
     # for mobile
     return tokens
 
 
-@auth_router.post("/sign-out")
+@api_router.post("/sign-out")
 async def sign_out(
     response: Response,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -228,7 +288,7 @@ async def sign_out(
 ) -> None:
     await auth_service.sign_out(authenticated_user_id)
     # for web
-    response.delete_cookie("access_token_cookie")
-    response.delete_cookie("refresh_token_cookie")
+    response.delete_cookie("AccessToken")
+    response.delete_cookie("RefreshToken")
     # for mobile nothing to do
     return

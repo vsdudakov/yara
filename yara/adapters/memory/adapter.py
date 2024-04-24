@@ -2,7 +2,7 @@ import typing as tp
 
 from yara.adapters.memory.backends.base import MemoryBackend
 from yara.core.adapters import YaraAdapter
-from yara.core.helpers import import_class
+from yara.core.helpers import import_obj
 from yara.main import YaraBaseRootApp
 
 
@@ -17,7 +17,7 @@ class MemoryAdapter(YaraAdapter):
         if not backend_cls_path:
             raise ValueError("Provide YARA_MEMORY_BACKEND settings")
 
-        backend_cls: type[MemoryBackend] | None = import_class(backend_cls_path)
+        backend_cls: type[MemoryBackend] | None = import_obj(backend_cls_path)
         if not backend_cls:
             raise ValueError(f"Backend {backend_cls_path} not found")
 

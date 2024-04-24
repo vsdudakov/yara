@@ -12,7 +12,7 @@ from yara.adapters.orm.backends.schemas import (
 )
 from yara.apps.orm.models import Model
 from yara.core.adapters import YaraAdapter
-from yara.core.helpers import import_class
+from yara.core.helpers import import_obj
 from yara.main import YaraBaseRootApp
 
 TModel = tp.TypeVar("TModel", bound=Model)
@@ -28,7 +28,7 @@ class ORMAdapter(tp.Generic[TModel], YaraAdapter):
         if not backend_cls_path:
             raise ValueError("Provide YARA_ORM_BACKEND setting")
 
-        backend_cls: type[ORMBackend] | None = import_class(backend_cls_path)
+        backend_cls: type[ORMBackend] | None = import_obj(backend_cls_path)
         if not backend_cls:
             raise ValueError(f"Backend {backend_cls_path} not found")
 

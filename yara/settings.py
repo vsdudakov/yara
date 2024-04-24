@@ -79,3 +79,6 @@ class YaraSettings(BaseSettings):
     # OAuth2
     YARA_OAUTH2_GOOGLE_CLIENT_ID: str = ""
     YARA_OAUTH2_GOOGLE_CLIENT_SECRET: str = ""
+
+    # Websockets
+    YARA_WEBSOCKETS_HANDLER_TASK: str | None = None

@@ -1,6 +1,6 @@
 from yara.adapters.storage.backends.base import StorageBackend
 from yara.core.adapters import YaraAdapter
-from yara.core.helpers import import_class
+from yara.core.helpers import import_obj
 from yara.main import YaraBaseRootApp
 
 
@@ -15,7 +15,7 @@ class StorageAdapter(YaraAdapter):
         if not backend_cls_path:
             raise ValueError("Provide YARA_STORAGE_BACKEND settings")
 
-        backend_cls: type[StorageBackend] | None = import_class(backend_cls_path)
+        backend_cls: type[StorageBackend] | None = import_obj(backend_cls_path)
         if not backend_cls:
             raise ValueError(f"Backend {backend_cls_path} not found")
 

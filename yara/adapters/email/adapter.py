@@ -2,7 +2,7 @@ import typing as tp
 
 from yara.adapters.email.backends.base import EmailBackend
 from yara.core.adapters import YaraAdapter
-from yara.core.helpers import import_class
+from yara.core.helpers import import_obj
 from yara.main import YaraBaseRootApp
 
 
@@ -17,7 +17,7 @@ class EmailAdapter(YaraAdapter):
         if not backend_cls_path:
             raise ValueError("Provide YARA_EMAIL_BACKEND settings")
 
-        backend_cls: type[EmailBackend] | None = import_class(backend_cls_path)
+        backend_cls: type[EmailBackend] | None = import_obj(backend_cls_path)
         if not backend_cls:
             raise ValueError(f"Backend {backend_cls_path} not found")
 
