@@ -109,7 +109,7 @@ class AuthService(YaraService):
 
         task_send_email.delay(
             to=payload.email,
-            template_id="magic_link",
+            template_id=f"magic_link_{payload.frontend_locale}",
             payload={
                 "magic_link": f"{payload.frontend_link}?magic_link_verification_token={magic_link_verification_token}",
             },
@@ -216,7 +216,7 @@ class AuthService(YaraService):
 
         task_send_email.delay(
             to=payload.email,
-            template_id="sign_up",
+            template_id=f"sign_up_{payload.frontend_locale}",
             payload={
                 "sign_up_link": f"{payload.frontend_link}?sign_up_verification_token={sign_up_verification_token}",
             },
@@ -262,7 +262,7 @@ class AuthService(YaraService):
 
         task_send_email.delay(
             to=payload.email,
-            template_id="reset_password",
+            template_id=f"reset_password_{payload.frontend_locale}",
             payload={
                 "reset_password_link": f"{payload.frontend_link}?reset_password_verification_token={reset_password_verification_token}",
             },

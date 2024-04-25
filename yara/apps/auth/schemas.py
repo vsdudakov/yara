@@ -7,7 +7,7 @@ from pydantic import BaseModel, field_validator, model_validator
 from yara.adapters.oauth.adapter import OAuth2BackendEnum
 
 
-class ELanguage(enum.StrEnum):
+class ELocale(enum.StrEnum):
     en = "en"
     es = "es"
     ru = "ru"
@@ -26,7 +26,7 @@ class SignInResponse(BaseModel):
 class SignInMagicLinkPayload(BaseModel):
     email: str
     frontend_link: str
-    frontend_language: ELanguage | None = ELanguage.en
+    frontend_locale: ELocale | None = ELocale.en
 
 
 class SignInMagicLinkResponse(BaseModel):
@@ -61,7 +61,7 @@ class SignUpPayload(BaseModel):
     invitation_token: str | None = None
 
     frontend_link: str
-    frontend_language: ELanguage | None = ELanguage.en
+    frontend_locale: ELocale | None = ELocale.en
 
     @field_validator("accept_terms_and_policies")
     @classmethod
@@ -90,7 +90,7 @@ class SignUpCompletePayload(BaseModel):
 class ResetPasswordPayload(BaseModel):
     email: str
     frontend_link: str
-    frontend_language: ELanguage | None = ELanguage.en
+    frontend_locale: ELocale | None = ELocale.en
 
 
 class ResetPasswordResponse(BaseModel):

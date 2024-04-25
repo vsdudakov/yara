@@ -3,7 +3,7 @@ import typing as tp
 from email.message import EmailMessage
 
 import aiosmtplib
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, select_autoescape
 
 from yara.adapters.email.backends.base import EmailBackend
 
@@ -36,7 +36,7 @@ class SmtpEmailBackend(EmailBackend):
         if not template_path:
             raise ValueError(f"Template {template_id} not found")
         templates_env = Environment(
-            loader=FileSystemLoader(template_path),
+            loader=PackageLoader(template_path),
             autoescape=select_autoescape(),
             enable_async=True,
         )
