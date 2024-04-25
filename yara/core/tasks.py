@@ -38,6 +38,9 @@ class AsyncioTaskManager:
 
     def asyncio_task(self, func: tp.Any) -> tp.Any:
         async def task_runner(*args: tp.Any, **kwargs: tp.Any) -> tp.Any:
+            from yara.main import root_app
+
+            kwargs["root_app"] = root_app
             task = asyncio.create_task(func(*args, **kwargs))
             self.running_tasks.add(task)
             task.add_done_callback(lambda t: self.running_tasks.remove(t))
