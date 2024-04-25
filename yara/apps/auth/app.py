@@ -7,8 +7,8 @@ from yara.core.apps import YaraApp
 
 
 class AuthApp(YaraApp):
-    def get_api_router(self) -> YaraApiRouter:
-        return api_router
+    def get_api_routers(self) -> list[YaraApiRouter]:
+        return [api_router]
 
     def get_commands(self) -> list[tp.Any]:
         return [create_superuser, create_group_moderator]

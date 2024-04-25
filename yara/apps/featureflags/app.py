@@ -4,5 +4,5 @@ from yara.core.apps import YaraApp
 
 
 class FeatureFlagApp(YaraApp):
-    def get_api_router(self) -> YaraApiRouter:
-        return api_router
+    def get_api_routers(self) -> list[YaraApiRouter]:
+        return [api_router]

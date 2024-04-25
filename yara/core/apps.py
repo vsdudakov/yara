@@ -16,5 +16,5 @@ class YaraApp:
     def get_commands(self) -> list[tp.Any]:
         return []
 
-    def get_api_router(self) -> YaraApiRouter | None:
-        return None
+    def get_api_routers(self) -> list[YaraApiRouter]:
+        return []
