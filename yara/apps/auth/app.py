@@ -1,8 +1,8 @@
 import typing as tp
 
-from yara.apps.auth.api_router import api_router
+from yara.apps.auth.api_routers import api_router
 from yara.apps.auth.commands import create_group_moderator, create_superuser
-from yara.core.api_router import YaraApiRouter
+from yara.core.api_routers import YaraApiRouter
 from yara.core.apps import YaraApp
 
 

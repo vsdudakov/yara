@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 
 from yara.adapters.orm.adapter import ORMAdapter, where_clause
 from yara.apps.auth.models import User
-from yara.core.api_router import Depends, HTTPException, Request, WebSocket, get_root_app, status
+from yara.core.api_routers import Depends, HTTPException, Request, WebSocket, get_root_app, status
 from yara.settings import YaraSettings
 
 logger = logging.getLogger(__name__)

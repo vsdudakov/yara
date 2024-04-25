@@ -1,6 +1,6 @@
 import typing as tp
 
-from yara.core.api_router import YaraApiRouter
+from yara.core.api_routers import YaraApiRouter
 from yara.core.middlewares import YaraMiddleware
 
 

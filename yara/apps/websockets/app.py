@@ -1,5 +1,5 @@
-from yara.apps.websockets.api_router import api_router
-from yara.core.api_router import YaraApiRouter
+from yara.apps.websockets.api_routers import api_router
+from yara.core.api_routers import YaraApiRouter
 from yara.core.apps import YaraApp
 
 
