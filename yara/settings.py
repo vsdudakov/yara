@@ -59,12 +59,12 @@ class YaraSettings(BaseSettings):
 
     # Email
     YARA_EMAIL_BACKEND: str = "yara.adapters.email.backends.smtp.SmtpEmailBackend"
-    YARA_EMAIL_SMTP_HOST: str
     YARA_EMAIL_TEMPLATES: dict[str, str] = {}
     YARA_EMAIL_SMTP_FROM: str
+    YARA_EMAIL_SMTP_HOST: str
     YARA_EMAIL_SMTP_PORT: int = 587
-    YARA_EMAIL_SMTP_USERNAME: str
-    YARA_EMAIL_SMTP_PASSWORD: str
+    YARA_EMAIL_SMTP_USERNAME: str | None = None
+    YARA_EMAIL_SMTP_PASSWORD: str | None = None
     YARA_EMAIL_SMTP_USE_TLS: bool = True
     YARA_EMAIL_SMTP_TIMEOUT: int | None = None
 
