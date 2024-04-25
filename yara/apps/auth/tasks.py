@@ -13,8 +13,9 @@ async def task_send_email(
     to: str,
     template_id: str,
     payload: dict[str, tp.Any],
-    root_app: YaraRootApp,
+    **kwargs: tp.Any,
 ) -> None:
+    root_app: YaraRootApp = kwargs["root_app"]
     email_adapter: EmailAdapter = root_app.get_adapter(EmailAdapter)
     await email_adapter.send_email(
         to,
