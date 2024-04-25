@@ -169,7 +169,11 @@ class ORMBackend:
                 )
                 logger.info("%s applied", migration_module.__name__)
 
-    async def downgrade(self, table: str) -> None:
+    async def makemigrations(self, table: str) -> bool:
+        # TODO: implement me
+        return False
+
+    async def downgrade(self, table: str, to_migration: str | None = None) -> None:
         try:
             applied_migrations = [row["name"] for row in await self.select(table, SelectClause(columns=["name"]))]
         except UndefinedTableError:
@@ -184,6 +188,8 @@ class ORMBackend:
                 migration_modules.append(migration_module)
         async with self.uow():
             for migration_module in migration_modules[::-1]:
+                if to_migration and migration_module.__name__ == to_migration:
+                    break
                 await migration_module.downgrade(self)
                 with contextlib.suppress(UndefinedTableError):
                     await self.delete(

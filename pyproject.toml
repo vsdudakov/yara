@@ -49,6 +49,9 @@ watchdog = "^3.0.0"
 responses = "^0.24.1"
 nest-asyncio = "^1.5.8"
 
+[tool.poetry.scripts]
+yara = "yara.scripts:run_command"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
