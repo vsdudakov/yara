@@ -7,4 +7,5 @@ class File(UUIDModel):
     name: str | None
     content_type: str | None
 
+    bucket_name: str
     path: str

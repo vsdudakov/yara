@@ -11,9 +11,9 @@ async def get_root_app(request: Request) -> tp.Any:
     return request.app.extra["yara_root_app"]
 
 
-def get_service(service_cls: type[tp.Any]) -> tp.Any:
+def get_service(service_cls: type[tp.Any], **kwargs: tp.Any) -> tp.Any:
     async def service(root_app: tp.Any = Depends(get_root_app)) -> tp.Any:
-        return service_cls(root_app)
+        return service_cls(root_app, **kwargs)
 
     return service
 

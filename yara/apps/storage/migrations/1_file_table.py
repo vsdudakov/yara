@@ -32,6 +32,10 @@ async def upgrade(orm_backend: ORMBackend) -> None:
                 nullable=True,
             ),
             ColumnClause(
+                name="bucket_name",
+                type=EColumnType.STR,
+            ),
+            ColumnClause(
                 name="path",
                 type=EColumnType.STR,
             ),
