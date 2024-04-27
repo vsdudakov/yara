@@ -9,3 +9,4 @@ class File(UUIDModel):
 
     bucket_name: str
     path: str
+    is_uploaded: bool = False

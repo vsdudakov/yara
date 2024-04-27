@@ -39,6 +39,11 @@ async def upgrade(orm_backend: ORMBackend) -> None:
                 name="path",
                 type=EColumnType.STR,
             ),
+            ColumnClause(
+                name="is_uploaded",
+                type=EColumnType.BOOL,
+                default=False,
+            ),
         ],
     )
 

@@ -20,17 +20,24 @@ class StorageService(YaraService):
         self.file_orm_adapter: ORMAdapter[File] = self.root_app.get_adapter(ORMAdapter)
         self.storage_adapter: StorageAdapter = self.root_app.get_adapter(StorageAdapter)
 
-    async def create_file(self, payload: schemas.CreateFile) -> schemas.FileWithPresignedUploadUrl:
+    async def create_file(self, payload: schemas.CreateFilePayload) -> schemas.FileWithPresignedUploadUrlResponse:
         file = await self.file_orm_adapter.create_and_read(File, payload.model_dump())
         presigned_upload_url = await self.storage_adapter.presigned_put_object(file.bucket_name, file.path)
-        return schemas.FileWithPresignedUploadUrl(**file.model_dump(), presigned_upload_url=presigned_upload_url)
+        return schemas.FileWithPresignedUploadUrlResponse(
+            **file.model_dump(), presigned_upload_url=presigned_upload_url
+        )
 
-    async def retrieve_file(self, id: uuid.UUID) -> schemas.FileWithPresignedDownloadUrl | None:
+    async def update_file(self, id: uuid.UUID, payload: schemas.UpdateFilePayload) -> None:
+        await self.file_orm_adapter.update(File, payload.model_dump(exclude_unset=True), where_clause(id=id))
+
+    async def retrieve_file(self, id: uuid.UUID) -> schemas.FileWithPresignedDownloadUrlResponse | None:
         file = await self.file_orm_adapter.read(File, where_clause(id=id))
         if file is None:
             return None
         presigned_download_url = await self.storage_adapter.presigned_get_object(file.bucket_name, file.path)
-        return schemas.FileWithPresignedDownloadUrl(**file.model_dump(), presigned_download_url=presigned_download_url)
+        return schemas.FileWithPresignedDownloadUrlResponse(
+            **file.model_dump(), presigned_download_url=presigned_download_url
+        )
 
     async def delete_file(self, id: uuid.UUID) -> None:
         file = await self.file_orm_adapter.read(File, where_clause(id=id))
