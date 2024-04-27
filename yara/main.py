@@ -62,6 +62,21 @@ async def value_error_exp_handler(_: Request, exc: ValueError) -> JSONResponse:
     )
 
 
+async def permission_error_exp_handler(_: Request, exc: PermissionError) -> JSONResponse:
+    """
+    Exception handler for PermissionError.
+    Formats the error message to be returned to the client.
+    """
+    try:
+        field_errors = exc.args[0]
+    except IndexError:
+        field_errors = "Permission denied"
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"detail": [{"loc": ["body"], "msg": field_errors, "type": ""}]},
+    )
+
+
 class YaraBaseRootApp:
     settings: YaraSettings
     adapters: dict[type[YaraAdapter], YaraAdapter]
@@ -166,6 +181,7 @@ class YaraRootApp(YaraBaseRootApp):
             yara_root_app=self,
         )
         self.fastapi_app.add_exception_handler(ValueError, value_error_exp_handler)
+        self.fastapi_app.add_exception_handler(PermissionError, permission_error_exp_handler)
 
         self.apps = {}
         for app_cls_path in self.settings.YARA_APPS:
