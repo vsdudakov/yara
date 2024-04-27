@@ -4,7 +4,7 @@ from yara.adapters.orm.backends.schemas import ColumnClause, EColumnType
 
 async def upgrade(orm_backend: ORMBackend) -> None:
     await orm_backend.create_table(
-        "yara__auth__group",
+        "yara__storage__file",
         [
             ColumnClause(
                 name="id",
@@ -24,10 +24,20 @@ async def upgrade(orm_backend: ORMBackend) -> None:
             ColumnClause(
                 name="name",
                 type=EColumnType.STR,
+                nullable=True,
+            ),
+            ColumnClause(
+                name="content_type",
+                type=EColumnType.STR,
+                nullable=True,
+            ),
+            ColumnClause(
+                name="path",
+                type=EColumnType.STR,
             ),
         ],
     )
 
 
 async def downgrade(orm_backend: ORMBackend) -> None:
-    await orm_backend.drop_table("yara__auth__group")
+    await orm_backend.drop_table("yara__storage__file")

@@ -1,7 +1,7 @@
 import typing as tp
 
 from yara.apps.auth.api_routers import api_router
-from yara.apps.auth.commands import create_group_moderator, create_superuser
+from yara.apps.auth.commands import create_superuser
 from yara.core.api_routers import YaraApiRouter
 from yara.core.apps import YaraApp
 
@@ -11,4 +11,4 @@ class AuthApp(YaraApp):
         return [api_router]
 
     def get_commands(self) -> list[tp.Any]:
-        return [create_superuser, create_group_moderator]
+        return [create_superuser]

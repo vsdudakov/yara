@@ -24,7 +24,7 @@ class YaraSettings(BaseSettings):
     YARA_APPS: list[str] = [
         "yara.apps.orm.app.ORMApp",
         "yara.apps.secure.app.SecureApp",
-        "yara.apps.featureflags.app.FeatureFlagApp",
+        "yara.apps.storage.app.StorageApp",
         "yara.apps.auth.app.AuthApp",
     ]
 

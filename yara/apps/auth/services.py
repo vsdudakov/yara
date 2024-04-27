@@ -3,31 +3,16 @@ import uuid
 
 from yara.adapters.oauth.adapter import OAuth2Adapter
 from yara.adapters.orm.adapter import ORMAdapter, where_clause
-from yara.apps.auth.helpers import (
+from yara.apps.auth import schemas
+from yara.apps.auth.models import User
+from yara.apps.auth.tasks import task_send_email
+from yara.core.helpers import (
     decode_jwt_token,
     encode_jwt_token,
     generate_random_string,
     hash_password,
     validate_password,
 )
-from yara.apps.auth.models import Group, User
-from yara.apps.auth.schemas import (
-    ResetPasswordCompletePayload,
-    ResetPasswordPayload,
-    ResetPasswordResponse,
-    SignInMagicLinkCompletePayload,
-    SignInMagicLinkPayload,
-    SignInMagicLinkResponse,
-    SignInOAuth2CallbackPayload,
-    SignInOAuth2Payload,
-    SignInOAuth2Response,
-    SignInPayload,
-    SignInResponse,
-    SignUpCompletePayload,
-    SignUpPayload,
-    SignUpResponse,
-)
-from yara.apps.auth.tasks import task_send_email
 from yara.core.services import YaraService
 from yara.main import YaraRootApp
 
@@ -36,15 +21,13 @@ logger = logging.getLogger(__name__)
 
 class AuthService(YaraService):
     user_orm_adapter: ORMAdapter[User]
-    group_orm_adapter: ORMAdapter[Group]
 
     def __init__(self, root_app: YaraRootApp) -> None:
         super().__init__(root_app)
         self.user_orm_adapter: ORMAdapter[User] = self.root_app.get_adapter(ORMAdapter)
-        self.group_orm_adapter: ORMAdapter[Group] = self.root_app.get_adapter(ORMAdapter)
         self.oauth2_adapter: OAuth2Adapter = self.root_app.get_adapter(OAuth2Adapter)
 
-    def generate_tokens(self, authenticated_user_id: uuid.UUID) -> SignInResponse:
+    def generate_tokens(self, authenticated_user_id: uuid.UUID) -> schemas.SignInResponse:
         salt = generate_random_string()
         payload = {"id": str(authenticated_user_id), "salt": salt}
         access_token = encode_jwt_token(
@@ -57,21 +40,9 @@ class AuthService(YaraService):
             self.root_app.settings.YARA_AUTH_EXP_REFRESH_TOKEN,
             self.root_app.settings.YARA_AUTH_SECRET_KEY,
         )
-        return SignInResponse(access_token=access_token, refresh_token=refresh_token)
+        return schemas.SignInResponse(access_token=access_token, refresh_token=refresh_token)
 
-    def get_invitation_token(self, inviter_user_id: uuid.UUID, group_id: uuid.UUID) -> str | None:
-        return encode_jwt_token(
-            {
-                "group_id": str(group_id),
-                "inviter_user_id": str(inviter_user_id),
-                "tags": ["sign-up-invitation"],
-                "salt": generate_random_string(),
-            },
-            self.root_app.settings.YARA_AUTH_EXP_SIGNUP_INVITATION_TOKEN,
-            self.root_app.settings.YARA_AUTH_SECRET_KEY,
-        )
-
-    async def sign_in(self, payload: SignInPayload) -> SignInResponse:
+    async def sign_in(self, payload: schemas.SignInPayload) -> schemas.SignInResponse:
         user: User | None = await self.user_orm_adapter.read(
             User,
             where_clause(
@@ -89,7 +60,7 @@ class AuthService(YaraService):
 
         return self.generate_tokens(user.id)
 
-    async def sign_in_magic_link(self, payload: SignInMagicLinkPayload) -> SignInMagicLinkResponse:
+    async def sign_in_magic_link(self, payload: schemas.SignInMagicLinkPayload) -> schemas.SignInMagicLinkResponse:
         user: User | None = await self.user_orm_adapter.read(
             User,
             where_clause(email=payload.email, is_active=True),
@@ -114,9 +85,11 @@ class AuthService(YaraService):
                 "magic_link": f"{payload.frontend_link}?magic_link_verification_token={magic_link_verification_token}",
             },
         )
-        return SignInMagicLinkResponse(email=payload.email)
+        return schemas.SignInMagicLinkResponse(email=payload.email)
 
-    async def sign_in_magic_link_complete(self, payload: SignInMagicLinkCompletePayload) -> SignInResponse:
+    async def sign_in_magic_link_complete(
+        self, payload: schemas.SignInMagicLinkCompletePayload
+    ) -> schemas.SignInResponse:
         jwt_payload = decode_jwt_token(
             payload.magic_link_verification_token,
             self.root_app.settings.YARA_AUTH_SECRET_KEY,
@@ -129,16 +102,16 @@ class AuthService(YaraService):
 
         return self.generate_tokens(uuid.UUID(user_id))
 
-    async def sign_in_oauth2(self, payload: SignInOAuth2Payload) -> SignInOAuth2Response:
+    async def sign_in_oauth2(self, payload: schemas.SignInOAuth2Payload) -> schemas.SignInOAuth2Response:
         authorization_url = await self.oauth2_adapter.get_authorization_url(
             payload.backend,
             payload.redirect_uri,
         )
         if not authorization_url:
             raise ValueError({"provider": "Not supported or configured provider"})
-        return SignInOAuth2Response(authorization_url=authorization_url)
+        return schemas.SignInOAuth2Response(authorization_url=authorization_url)
 
-    async def sign_in_oauth2_callback(self, payload: SignInOAuth2CallbackPayload) -> SignInResponse:
+    async def sign_in_oauth2_callback(self, payload: schemas.SignInOAuth2CallbackPayload) -> schemas.SignInResponse:
         user_email = await self.oauth2_adapter.get_user_email_from_provider(
             payload.backend,
             payload.redirect_uri,
@@ -163,41 +136,15 @@ class AuthService(YaraService):
 
         return self.generate_tokens(user.id)
 
-    async def sign_up_invitation(self, inviter_user_id: uuid.UUID) -> str | None:
-        user = await self.user_orm_adapter.read(
-            User,
-            where_clause(
-                id=str(inviter_user_id),
-                is_active=True,
-                is_group_moderator=True,
-            ),
-        )
-        if not user or not user.group_id:
-            return None
-
-        return self.get_invitation_token(inviter_user_id, user.group_id)
-
-    async def sign_up(self, payload: SignUpPayload) -> SignUpResponse:
+    async def sign_up(self, payload: schemas.SignUpPayload) -> schemas.SignUpResponse:
         if await self.user_orm_adapter.exists(User, where_clause(email=payload.email, is_active=True)):
             raise ValueError({"email": "Active user with the email already exists"})
-
-        group_id = None
-        if payload.invitation_token:
-            jwt_payload = decode_jwt_token(
-                payload.invitation_token,
-                self.root_app.settings.YARA_AUTH_SECRET_KEY,
-            )
-            if not jwt_payload or "sign-up-invitation" not in jwt_payload.get("tags", []):
-                raise ValueError({"token": "Invalid invitation token"})
-            group_id = jwt_payload.get("group_id")
 
         update_or_create_payload = {
             "email": payload.email,
             "password": hash_password(payload.password),
             "is_active": False,
             "is_superuser": False,
-            "is_group_moderator": False,
-            "group_id": group_id,
         }
         user = await self.user_orm_adapter.update_or_create(
             User,
@@ -221,9 +168,9 @@ class AuthService(YaraService):
                 "sign_up_link": f"{payload.frontend_link}?sign_up_verification_token={sign_up_verification_token}",
             },
         )
-        return SignUpResponse(email=payload.email)
+        return schemas.SignUpResponse(email=payload.email)
 
-    async def sign_up_complete(self, payload: SignUpCompletePayload) -> SignInResponse:
+    async def sign_up_complete(self, payload: schemas.SignUpCompletePayload) -> schemas.SignInResponse:
         jwt_payload = decode_jwt_token(
             payload.sign_up_verification_token,
             self.root_app.settings.YARA_AUTH_SECRET_KEY,
@@ -244,11 +191,11 @@ class AuthService(YaraService):
 
     async def reset_password(
         self,
-        payload: ResetPasswordPayload,
-    ) -> ResetPasswordResponse:
+        payload: schemas.ResetPasswordPayload,
+    ) -> schemas.ResetPasswordResponse:
         user = await self.user_orm_adapter.read(User, where_clause(email=payload.email, is_active=True))
         if not user:
-            return ResetPasswordResponse(email=payload.email)
+            return schemas.ResetPasswordResponse(email=payload.email)
 
         reset_password_verification_token = encode_jwt_token(
             {
@@ -267,12 +214,12 @@ class AuthService(YaraService):
                 "reset_password_link": f"{payload.frontend_link}?reset_password_verification_token={reset_password_verification_token}",
             },
         )
-        return ResetPasswordResponse(email=payload.email)
+        return schemas.ResetPasswordResponse(email=payload.email)
 
     async def reset_password_complete(
         self,
-        payload: ResetPasswordCompletePayload,
-    ) -> SignInResponse:
+        payload: schemas.ResetPasswordCompletePayload,
+    ) -> schemas.SignInResponse:
         jwt_payload = decode_jwt_token(
             payload.reset_password_verification_token,
             self.root_app.settings.YARA_AUTH_SECRET_KEY,
@@ -301,18 +248,9 @@ class AuthService(YaraService):
         self,
         email: str,
         password: str,
-        group_name: str | None = None,
         is_active: bool = True,
-        is_group_moderator: bool = False,
         is_superuser: bool = False,
     ) -> None:
-        group = await self.group_orm_adapter.read_or_create(
-            Group,
-            {
-                "name": group_name,
-            },
-            where_clause(name=group_name),
-        )
         await self.user_orm_adapter.update_or_create(
             User,
             {
@@ -320,8 +258,6 @@ class AuthService(YaraService):
                 "password": hash_password(password),
                 "is_active": is_active,
                 "is_superuser": is_superuser,
-                "is_group_moderator": is_group_moderator,
-                "group_id": group.id,
             },
             where_clause(email=email),
         )
@@ -329,8 +265,42 @@ class AuthService(YaraService):
     async def is_superuser(self, user_id: uuid.UUID) -> bool:
         return await self.user_orm_adapter.exists(User, where_clause(id=str(user_id), is_superuser=True))
 
-    async def is_group_moderator(self, user_id: uuid.UUID) -> bool:
-        return await self.user_orm_adapter.exists(User, where_clause(id=str(user_id), is_group_moderator=True))
-
     async def is_active(self, user_id: uuid.UUID) -> bool:
         return await self.user_orm_adapter.exists(User, where_clause(id=str(user_id), is_active=True))
+
+    async def update_user(
+        self,
+        authenticated_user_id: uuid.UUID,
+        payload: schemas.UserUpdatePayload,
+    ) -> None:
+        if payload.email and await self.user_orm_adapter.exists(User, where_clause(email=payload.email)):
+            raise ValueError({"email": "User with this email already exists"})
+        await self.user_orm_adapter.update(
+            User,
+            payload.model_dump(exclude_unset=True),
+            where_clause(id=str(authenticated_user_id)),
+        )
+
+    async def change_password(
+        self,
+        authenticated_user_id: uuid.UUID,
+        payload: schemas.UserChangePasswordPayload,
+    ) -> None:
+        user = await self.user_orm_adapter.read(User, where_clause(id=str(authenticated_user_id)))
+        if not user or not validate_password(user.password, payload.old_password):
+            raise ValueError({"old_password": "Old password is incorrect"})
+
+        update_payload = {
+            "password": hash_password(payload.new_password),
+        }
+        await self.user_orm_adapter.update(
+            User,
+            update_payload,
+            where_clause(id=str(authenticated_user_id)),
+        )
+
+    async def get_me(
+        self,
+        authenticated_user_id: uuid.UUID,
+    ) -> User | None:
+        return await self.user_orm_adapter.read(User, where_clause(id=str(authenticated_user_id)))

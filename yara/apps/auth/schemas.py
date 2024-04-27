@@ -1,6 +1,5 @@
 import enum
-from datetime import datetime
-from uuid import UUID
+import uuid
 
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -107,23 +106,37 @@ class ResetPasswordCompletePayload(BaseModel):
         pw1 = self.password
         pw2 = self.repeat_password
         if pw1 is not None and pw2 is not None and pw1 != pw2:
-            raise ValueError("Passwords do not match")
+            raise ValueError(
+                {
+                    "password": "Passwords do not match",
+                    "repeat_password": "Passwords do not match",
+                }
+            )
         return self
 
 
-class UserMetaData(BaseModel):
-    pass
+class UserUpdatePayload(BaseModel):
+    email: str | None = None
+    full_name: str | None = None
+    avatar_id: uuid.UUID | None = None
+
+    is_active: bool | None = None
 
 
-class UserWithMetaData(BaseModel):
-    id: UUID
-    created_at: datetime
-    updated_at: datetime
-    group_id: UUID | None = None
-    email: str
-    phone: str | None
-    full_name: str | None
-    is_active: bool = False
-    is_superuser: bool = False
-    is_group_moderator: bool = False
-    metadata: UserMetaData
+class UserChangePasswordPayload(BaseModel):
+    old_password: str
+    new_password: str
+    repeat_new_password: str
+
+    @model_validator(mode="after")
+    def check_passwords_match(self) -> "UserChangePasswordPayload":
+        pw1 = self.new_password
+        pw2 = self.repeat_new_password
+        if pw1 is not None and pw2 is not None and pw1 != pw2:
+            raise ValueError(
+                {
+                    "new_password": "Passwords do not match",
+                    "repeat_new_password": "Passwords do not match",
+                }
+            )
+        return self
