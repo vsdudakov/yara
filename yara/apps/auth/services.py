@@ -277,7 +277,7 @@ class AuthService(YaraService):
             User,
             where_clause(
                 email=payload.email,
-                id__not=authenticated_user_id,
+                id__not=str(authenticated_user_id),
             ),
         ):
             raise ValueError({"email": "User with this email already exists"})
