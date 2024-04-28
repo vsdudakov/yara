@@ -274,10 +274,11 @@ class AuthService(YaraService):
         payload: schemas.UserUpdatePayload,
     ) -> None:
         if payload.email and await self.user_orm_adapter.exists(
-            User, where_clause(
+            User,
+            where_clause(
                 email=payload.email,
                 id__not=authenticated_user_id,
-            )
+            ),
         ):
             raise ValueError({"email": "User with this email already exists"})
         await self.user_orm_adapter.update(
