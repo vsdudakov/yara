@@ -25,6 +25,7 @@ class EColumnType(enum.StrEnum):
 
 class EOperator(enum.StrEnum):
     EQ = "="
+    NOT_EQ = "!="
     GT = ">"
     LT = "<"
     GTE = ">="
@@ -133,7 +134,10 @@ def where_clause(**kwargs: tp.Any) -> list[WhereClause]:
     terms = []
     for k, v in kwargs.items():
         operator = EOperator.EQ
-        if k.endswith("__in"):
+        if k.endswith("__not"):
+            operator = EOperator.NOT_EQ
+            k = k.replace("__not", "")
+        elif k.endswith("__in"):
             operator = EOperator.IN
             k = k.replace("__in", "")
         elif k.endswith("__gt"):
