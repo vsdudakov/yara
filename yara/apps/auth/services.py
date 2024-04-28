@@ -309,4 +309,4 @@ class AuthService(YaraService):
         self,
         authenticated_user_id: uuid.UUID,
     ) -> User | None:
-        return await self.user_orm_adapter.read(User, where_clause(id=str(authenticated_user_id)))
+        return await self.user_orm_adapter.read(User, where_clause(id=str(authenticated_user_id), is_active=True))
