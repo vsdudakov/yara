@@ -3,7 +3,7 @@ from uuid import UUID
 from yara.apps.auth import schemas
 from yara.apps.auth.models import User
 from yara.apps.auth.services import AuthService
-from yara.core.api_routers import (
+from yara.core.routers import (
     Depends,
     HTTPException,
     Response,
@@ -14,13 +14,13 @@ from yara.core.api_routers import (
     status,
 )
 
-api_router = YaraApiRouter(
+router = YaraApiRouter(
     prefix="/auth",
     tags=["auth"],
 )
 
 
-@api_router.post("/sign-in")
+@router.post("/sign-in")
 async def sign_in(
     payload: schemas.SignInPayload,
     response: Response,
@@ -53,7 +53,7 @@ async def sign_in(
     return tokens
 
 
-@api_router.post("/sign-in/magic-link")
+@router.post("/sign-in/magic-link")
 async def sign_in_magic_link(
     payload: schemas.SignInMagicLinkPayload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -73,7 +73,7 @@ async def sign_in_magic_link(
     return await auth_service.sign_in_magic_link(payload)
 
 
-@api_router.post("/sign-in/magic-link/complete")
+@router.post("/sign-in/magic-link/complete")
 async def sign_in_magic_link_complete(
     payload: schemas.SignInMagicLinkCompletePayload,
     response: Response,
@@ -97,7 +97,7 @@ async def sign_in_magic_link_complete(
     return tokens
 
 
-@api_router.post("/sign-in/oauth2")
+@router.post("/sign-in/oauth2")
 async def sign_in_oauth2(
     payload: schemas.SignInOAuth2Payload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -126,7 +126,7 @@ async def sign_in_oauth2(
     return await auth_service.sign_in_oauth2(payload)
 
 
-@api_router.post("/sign-in/oauth2/callback")
+@router.post("/sign-in/oauth2/callback")
 async def sign_in_oauth2_callback(
     payload: schemas.SignInOAuth2CallbackPayload,
     response: Response,
@@ -150,7 +150,7 @@ async def sign_in_oauth2_callback(
     return tokens
 
 
-@api_router.post("/refresh-tokens")
+@router.post("/refresh-tokens")
 async def refresh_tokens(
     response: Response,
     authenticated_user_id: UUID = Depends(get_authenticated_user_id_from_refresh),
@@ -181,7 +181,7 @@ async def refresh_tokens(
     return tokens
 
 
-@api_router.post("/sign-up")
+@router.post("/sign-up")
 async def sign_up(
     payload: schemas.SignUpPayload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -202,7 +202,7 @@ async def sign_up(
     return await auth_service.sign_up(payload)
 
 
-@api_router.post("/sign-up/complete")
+@router.post("/sign-up/complete")
 async def sign_up_complete(
     response: Response,
     payload: schemas.SignUpCompletePayload,
@@ -226,7 +226,7 @@ async def sign_up_complete(
     return tokens
 
 
-@api_router.post("/reset-password")
+@router.post("/reset-password")
 async def reset_password(
     payload: schemas.ResetPasswordPayload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -247,7 +247,7 @@ async def reset_password(
     return await auth_service.reset_password(payload)
 
 
-@api_router.post("/reset-password/complete")
+@router.post("/reset-password/complete")
 async def reset_password_complete(
     response: Response,
     payload: schemas.ResetPasswordCompletePayload,
@@ -271,7 +271,7 @@ async def reset_password_complete(
     return tokens
 
 
-@api_router.post("/sign-out")
+@router.post("/sign-out")
 async def sign_out(
     response: Response,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -285,7 +285,7 @@ async def sign_out(
     return
 
 
-@api_router.patch("/me")
+@router.patch("/me")
 async def update_me(
     payload: schemas.UserUpdatePayload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -294,7 +294,7 @@ async def update_me(
     await auth_service.update_user(authenticated_user_id, payload)
 
 
-@api_router.patch("/change-password")
+@router.patch("/change-password")
 async def change_password(
     payload: schemas.UserChangePasswordPayload,
     auth_service: AuthService = Depends(get_service(AuthService)),
@@ -303,7 +303,7 @@ async def change_password(
     await auth_service.change_password(authenticated_user_id, payload)
 
 
-@api_router.get("/me")
+@router.get("/me")
 async def get_me(
     auth_service: AuthService = Depends(get_service(AuthService)),
     authenticated_user_id: UUID = Depends(get_authenticated_user_id),

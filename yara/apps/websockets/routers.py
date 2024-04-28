@@ -1,16 +1,16 @@
 from uuid import UUID
 
-from yara.apps.auth.helpers import get_authenticated_user_id
+from yara.apps.auth.routers import get_authenticated_user_id
 from yara.apps.websockets.services import WebsocketService
-from yara.core.api_routers import Depends, WebSocket, YaraApiRouter, get_service
+from yara.core.routers import Depends, WebSocket, YaraApiRouter, get_service
 
-api_router = YaraApiRouter(
+router = YaraApiRouter(
     prefix="/websockets",
     tags=["websockets"],
 )
 
 
-@api_router.websocket("")
+@router.websocket("")
 async def websockets(
     websocket: WebSocket,
     authenticated_user_id: UUID = Depends(get_authenticated_user_id),

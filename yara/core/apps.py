@@ -1,7 +1,7 @@
 import typing as tp
 
-from yara.core.api_routers import YaraApiRouter
 from yara.core.middlewares import YaraMiddleware
+from yara.core.routers import YaraApiRouter
 
 
 class YaraApp:
@@ -16,5 +16,5 @@ class YaraApp:
     def get_commands(self) -> list[tp.Any]:
         return []
 
-    def get_api_routers(self) -> list[YaraApiRouter]:
+    def get_routers(self) -> list[YaraApiRouter]:
         return []

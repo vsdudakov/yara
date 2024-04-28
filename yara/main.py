@@ -198,9 +198,9 @@ class YaraRootApp(YaraBaseRootApp):
                     self.fastapi_app.add_middleware(middleware_cls, **options)
 
         for app in self.apps.values():
-            api_routers = app.get_api_routers()
-            for api_router in api_routers:
-                self.fastapi_app.include_router(api_router)
+            routers = app.get_routers()
+            for router in routers:
+                self.fastapi_app.include_router(router)
 
     def get_asgi_app(self) -> tp.Any:
         return self.fastapi_app

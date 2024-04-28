@@ -2,15 +2,15 @@ from uuid import UUID
 
 from yara.apps.storage import schemas
 from yara.apps.storage.services import StorageService
-from yara.core.api_routers import Depends, HTTPException, YaraApiRouter, get_service, status
+from yara.core.routers import Depends, HTTPException, YaraApiRouter, get_service, status
 
-api_router = YaraApiRouter(
+router = YaraApiRouter(
     prefix="/storage",
     tags=["storage"],
 )
 
 
-@api_router.post("")
+@router.post("")
 async def create_file(
     payload: schemas.CreateFilePayload,
     storage_service: StorageService = Depends(get_service(StorageService)),
@@ -18,7 +18,7 @@ async def create_file(
     return await storage_service.create_file(payload)
 
 
-@api_router.patch("/{id}")
+@router.patch("/{id}")
 async def update_file(
     id: UUID,
     payload: schemas.UpdateFilePayload,
@@ -27,7 +27,7 @@ async def update_file(
     await storage_service.update_file(id, payload)
 
 
-@api_router.get("/{id}")
+@router.get("/{id}")
 async def retrieve_file(
     id: UUID,
     storage_service: StorageService = Depends(get_service(StorageService)),
@@ -38,7 +38,7 @@ async def retrieve_file(
     return file_with_presigned_download_url
 
 
-@api_router.delete("/{id}")
+@router.delete("/{id}")
 async def delete_file(
     id: UUID,
     storage_service: StorageService = Depends(get_service(StorageService)),
