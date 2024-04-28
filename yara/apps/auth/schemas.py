@@ -106,12 +106,7 @@ class ResetPasswordCompletePayload(BaseModel):
         pw1 = self.password
         pw2 = self.repeat_password
         if pw1 is not None and pw2 is not None and pw1 != pw2:
-            raise ValueError(
-                {
-                    "password": "Passwords do not match",
-                    "repeat_password": "Passwords do not match",
-                }
-            )
+            raise ValueError("Passwords do not match")
         return self
 
 
@@ -133,10 +128,5 @@ class UserChangePasswordPayload(BaseModel):
         pw1 = self.new_password
         pw2 = self.repeat_new_password
         if pw1 is not None and pw2 is not None and pw1 != pw2:
-            raise ValueError(
-                {
-                    "new_password": "Passwords do not match",
-                    "repeat_new_password": "Passwords do not match",
-                }
-            )
+            raise ValueError("Passwords do not match")
         return self
